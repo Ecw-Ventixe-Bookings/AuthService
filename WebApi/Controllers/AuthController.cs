@@ -1,19 +1,32 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using WebApi.Data.Entities;
 using WebApi.Service.Dtos;
+using WebApi.Service.Interfaces;
 
 namespace WebApi.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class AuthController : ControllerBase
+public class AuthController(IAuthService authService) : ControllerBase
 {
-    [HttpGet("login")]
-    public async Task<IActionResult> Login(UserLoginDto user)
-    {
-        //  Maybe test with signinmanager, or create JWT's ???
-        //var result = await _signInManager.PasswordSignInAsync(user.Email, user.Password, user.RememberMe, lockoutOnFailure: false);
+    private readonly IAuthService _authService = authService;
 
-        return Ok();
+    [HttpPost("login")]
+    public async Task<IActionResult> Login(UserLoginDto dto)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var jwt = await _authService.Login(dto);
+
+        if (!string.IsNullOrEmpty(jwt))
+        {   
+            return Ok(jwt);
+        }
+        return BadRequest();
     }
 
     [HttpGet("logout")]
@@ -25,5 +38,12 @@ public class AuthController : ControllerBase
         }
 
         return Ok();
+    }
+
+    [HttpGet("jwtpk")]
+    public IActionResult GetPublicKey()
+    {
+        var pubKey = _authService.GetPublicKey();
+        return Ok(pubKey);
     }
 }

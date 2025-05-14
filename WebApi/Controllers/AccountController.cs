@@ -6,6 +6,7 @@ using WebApi.Service.Interfaces;
 
 namespace WebApi.Controllers;
 
+
 [Route("api/[controller]")]
 [ApiController]
 [Authorize]
@@ -13,8 +14,8 @@ public class AccountController(IUserService userService) : ControllerBase
 {
     private readonly IUserService _userService = userService;
 
-    [HttpPost("create")]
-    [AllowAnonymous]
+    
+    [HttpPost("create")]    
     public async Task<IActionResult> Create([FromBody] UserCreateDto dto)
     {
         if (!ModelState.IsValid)

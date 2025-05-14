@@ -1,6 +1,9 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Scalar.AspNetCore;
 using WebApi.Data;
+using WebApi.Data.Entities;
 using WebApi.Service.Interfaces;
 using WebApi.Service.Services;
 
@@ -16,7 +19,16 @@ builder.Services.AddDbContext<AppDataContext>(opt =>
     opt.UseSqlServer(connectionString);
 });
 
+builder.Services.AddIdentity<UserEntity, IdentityRole>(opt =>
+{
+    opt.User.RequireUniqueEmail = true;
+})
+.AddEntityFrameworkStores<AppDataContext>()
+.AddDefaultTokenProviders();
+    
+
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<TokenGenerator>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 

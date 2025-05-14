@@ -1,5 +1,10 @@
-﻿namespace WebApi.Service.Interfaces;
+﻿using WebApi.Service.Dtos;
+
+namespace WebApi.Service.Interfaces;
 
 public interface IAuthService
 {
+    public Task<string> Login(UserLoginDto dto);
+    public Task Logout();
+    public string GetPublicKey();
 }
