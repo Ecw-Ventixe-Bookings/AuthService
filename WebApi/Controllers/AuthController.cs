@@ -43,7 +43,7 @@ public class AuthController(IAuthService authService) : ControllerBase
     [HttpGet("jwtpk")]
     public IActionResult GetPublicKey()
     {
-        var pubKey = _authService.GetPublicKey();
-        return Ok(pubKey);
+        var pubKeyInfo = _authService.GetPublicKey();
+        return Ok(pubKeyInfo);
     }
 }

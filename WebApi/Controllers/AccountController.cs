@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.Service.Dtos;
@@ -6,16 +7,15 @@ using WebApi.Service.Interfaces;
 
 namespace WebApi.Controllers;
 
-
+[Authorize]
 [Route("api/[controller]")]
 [ApiController]
-[Authorize]
 public class AccountController(IUserService userService) : ControllerBase
 {
     private readonly IUserService _userService = userService;
 
-    
-    [HttpPost("create")]    
+    [AllowAnonymous]
+    [HttpPost("create")]
     public async Task<IActionResult> Create([FromBody] UserCreateDto dto)
     {
         if (!ModelState.IsValid)

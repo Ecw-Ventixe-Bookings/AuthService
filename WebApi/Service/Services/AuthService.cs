@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using WebApi.Data.Entities;
 using WebApi.Service.Dtos;
 using WebApi.Service.Interfaces;
@@ -7,36 +9,39 @@ namespace WebApi.Service.Services;
 
 public class AuthService(
     UserManager<UserEntity> userManager,
-    SignInManager<UserEntity> signinManager,
     TokenGenerator tokenGen,
     IConfiguration config) : IAuthService
 {
     private readonly UserManager<UserEntity> _userManager = userManager;
-    private readonly SignInManager<UserEntity> _signInManager = signinManager;
     private readonly TokenGenerator _tokenGen = tokenGen;
     private readonly IConfiguration _config = config;
 
     public async Task<string> Login(UserLoginDto dto)
     {
-        var result = await _signInManager.PasswordSignInAsync(dto.Email, dto.Password, dto.RememberMe, lockoutOnFailure: false);
-
-        if (!result.Succeeded) 
+        var entity = await _userManager.FindByEmailAsync(dto.Email);
+        
+        if (entity == null || await _userManager.CheckPasswordAsync(entity, dto.Password) == false) 
             return string.Empty;
 
-        var userEntity = await _userManager.FindByEmailAsync(dto.Email);
-        if (userEntity == null) 
-            return string.Empty;
-
-        return _tokenGen.GenerateRsaToken(userEntity.Id, userEntity.Email!);
+        return _tokenGen.GenerateRsaToken(entity.Id, entity.Email!);
     }
 
     public async Task Logout()
     {
-        await _signInManager.SignOutAsync();
+        //  Should render the token invalid (remove the token in frontend)
     }
 
-    public string GetPublicKey()
+    public PublicKeyinfo GetPublicKey()
     {
-        return _config["JWT:PublicKey"];
+        var publicKey = _config["JWT:PublicKey"];
+        var issuer = _config["JWT:Issuer"];
+        var audience = _config["JWT:Audience"];
+
+        return new()
+        {
+            PublicKey = publicKey,
+            Issuer = issuer,
+            Audience = audience
+        };
     }
 }
