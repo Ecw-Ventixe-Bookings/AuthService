@@ -1,14 +1,18 @@
-﻿using Microsoft.IdentityModel.Tokens;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using System.Runtime.CompilerServices;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using WebApi.Data.Entities;
 
 namespace WebApi.Service.Services;
 
-public class TokenGenerator(IConfiguration config)
+public class TokenGenerator(IConfiguration config, UserManager<UserEntity> userManger)
 {
     private readonly IConfiguration _config = config;
+    private readonly UserManager<UserEntity> _userManger = userManger;
 
     public string GenerateRsaToken(string userId, string Email, string role = "user")
     {
@@ -71,4 +75,6 @@ public class TokenGenerator(IConfiguration config)
         var token = tokenHandler.CreateToken(tokenDescriptor);
         return tokenHandler.WriteToken(token);
     }
+
+    
 }

@@ -1,17 +1,23 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Azure.Messaging.ServiceBus;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Net.Http;
+using System.Text.Json;
 using WebApi.Data.Entities;
 using WebApi.Service.Dtos;
 using WebApi.Service.Interfaces;
 using WebApi.Service.Models;
 
 namespace WebApi.Service.Services;
-public class UserService(UserManager<UserEntity> userManager, RoleManager<IdentityRole> roleManager) : IUserService
+public class UserService(
+    UserManager<UserEntity> userManager, 
+    RoleManager<IdentityRole> roleManager,
+    IConfiguration conf) : IUserService
 {
 
     private readonly UserManager<UserEntity> _userManager = userManager;
     private readonly RoleManager<IdentityRole> _roleManager = roleManager;
+    private readonly IConfiguration _conf = conf;
 
     public async Task<bool> CreateUserAsync(UserCreateDto dto)
     {
@@ -23,6 +29,44 @@ public class UserService(UserManager<UserEntity> userManager, RoleManager<Identi
         };
 
         var result = await _userManager.CreateAsync(entity, dto.Password);
+
+        if (result.Succeeded)
+        {
+            //  Send verification email through azure service bus <sendEmail>
+            var code = await _userManager.GenerateEmailConfirmationTokenAsync(entity);
+            var esbConnection = _conf["ESB:Connection"];
+            var queue = _conf["ESB:queue"];
+
+            var client = new ServiceBusClient(esbConnection);
+            var sender = client.CreateSender(queue);
+
+            var textContent = @$"
+                Use the following code to confirm your Email: {code}
+
+                If you did not initiate this request, you can safely discard this email.
+            ";
+            var htmlContent = $@"
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset=""UTF-8"" />
+                </head>
+                <body style=""font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 20px; color: #333333;"">
+                    <p>Use the following code to confirm your Email: {code} </p>
+                </body>
+            ";
+
+            var bodyMessage = new EsbMessage(entity.Email, textContent, htmlContent);
+
+            var serviceBusMessage = new ServiceBusMessage(JsonSerializer.Serialize(bodyMessage));
+            serviceBusMessage.Subject = $"Your code: {code}";
+            serviceBusMessage.ContentType = "application/json";
+
+            await sender.SendMessageAsync(serviceBusMessage);
+            await sender.DisposeAsync();
+            await client.DisposeAsync();
+        }
+
         return result.Succeeded;
     }
 
