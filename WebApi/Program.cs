@@ -28,6 +28,7 @@ builder.Services.AddDbContext<AppDataContext>(opt =>
 builder.Services.AddIdentity<UserEntity, IdentityRole>(opt =>
 {
     opt.User.RequireUniqueEmail = true;
+    opt.SignIn.RequireConfirmedEmail = true;
 })
 .AddEntityFrameworkStores<AppDataContext>()
 .AddDefaultTokenProviders();

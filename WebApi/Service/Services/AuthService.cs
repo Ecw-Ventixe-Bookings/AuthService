@@ -20,8 +20,11 @@ public class AuthService(
     {
         var entity = await _userManager.FindByEmailAsync(dto.Email);
         
-        if (entity == null || await _userManager.CheckPasswordAsync(entity, dto.Password) == false) 
-            return string.Empty;
+        if (
+            entity == null || 
+            await _userManager.CheckPasswordAsync(entity, dto.Password) == false ||
+            entity.EmailConfirmed == false) 
+                return string.Empty;
 
         return _tokenGen.GenerateRsaToken(entity.Id, entity.Email!);
     }
