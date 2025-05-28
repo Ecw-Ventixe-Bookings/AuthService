@@ -11,4 +11,5 @@ public interface IUserService
     public Task<UserModel> GetUserByEmailAsync(string email);
     public Task<bool> UpdateUserAsync(UserCreateDto dto, string userId);
     public Task<bool> DeleteUserAsync(string userId);
+    public Task<bool> VerifyEmailAsync(VerifyEmailDto dto);
 }

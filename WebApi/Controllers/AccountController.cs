@@ -26,6 +26,17 @@ public class AccountController(IUserService userService) : ControllerBase
         return result ? Ok() : Problem("Problem creating user");
     }
 
+    [AllowAnonymous]
+    [HttpPost("verify")]
+    public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailDto dto)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(new { message = "Invalid input", errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage) });
+        
+        var result = await _userService.VerifyEmailAsync(dto);
+        return result ? Ok() : Problem("Problem verifying Email");
+    }
+
     [HttpGet("{identifier?}")]
     public async Task<IActionResult> GetUser(string? identifier)
     {

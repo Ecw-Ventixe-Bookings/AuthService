@@ -1,6 +1,7 @@
 ﻿using Azure.Messaging.ServiceBus;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using WebApi.Data.Entities;
@@ -67,7 +68,24 @@ public class UserService(
             await client.DisposeAsync();
         }
 
+        
+
         return result.Succeeded;
+    }
+
+    public async Task<bool> VerifyEmailAsync(VerifyEmailDto dto)
+    {
+        try
+        {
+            var entity = await _userManager.FindByEmailAsync(dto.email);
+            var decodedToken = WebUtility.UrlDecode(dto.code);
+            var result = await _userManager.ConfirmEmailAsync(entity, decodedToken);
+            return result.Succeeded;
+        }
+        catch (Exception ex)
+        {
+            return false;
+        }        
     }
 
     public async Task<IEnumerable<UserModel>> GetUsersAsync()
