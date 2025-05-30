@@ -57,7 +57,7 @@ public class UserService(
                 </body>
             ";
 
-            var bodyMessage = new EsbMessage(entity.Email, textContent, htmlContent);
+            var bodyMessage = new EsbMsgSendEmail(entity.Email, textContent, htmlContent);
 
             var serviceBusMessage = new ServiceBusMessage(JsonSerializer.Serialize(bodyMessage));
             serviceBusMessage.Subject = $"Your code: {code}";
