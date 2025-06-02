@@ -7,6 +7,7 @@ using System.Reflection.Metadata.Ecma335;
 using System.Text.Json;
 using WebApi.Data.Entities;
 using WebApi.Service.Dtos;
+using WebApi.Service.Factories;
 using WebApi.Service.Interfaces;
 
 namespace WebApi.Service.Services;
@@ -44,21 +45,8 @@ public class AuthService(
             var code = await _userManager.GenerateEmailConfirmationTokenAsync(createdEntity);
             var emailSender = client.CreateSender("sendemail");
 
-            var textContent = @$"
-                Use the following code to confirm your Email: {code}
-
-                If you did not initiate this request, you can safely discard this email.
-            ";
-            var htmlContent = $@"
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <meta charset=""UTF-8"" />
-                </head>
-                <body style=""font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 20px; color: #333333;"">
-                    <p>Use the following code to confirm your Email: {code} </p>
-                </body>
-            ";
+            var htmlContent = EmailContentProvider.EmailComfirmationHtml(dto.FirstName, dto.LastName, code);
+            var textContent = EmailContentProvider.EmailComfirmationText(dto.FirstName, dto.LastName, code);
 
             var emailSenderBody = new EsbMsgSendEmail(entity.Email, textContent, htmlContent);
 

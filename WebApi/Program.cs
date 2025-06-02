@@ -53,13 +53,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<TokenGenerator>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 
 var app = builder.Build();
 app.MapOpenApi();
+app.MapScalarApiReference("/api/docs");
 
 app.UseCors(x => x.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod());
 app.UseHttpsRedirection();
